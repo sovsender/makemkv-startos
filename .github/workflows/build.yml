@@ -72,18 +72,19 @@ jobs:
           REGISTRY: ${{ vars.RELEASE_REGISTRY }}
         run: |
           VERSION=$(start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -r .version)
-          # Only an admin may create a package id. Until the first publish has been done by hand,
-          # this is a notice rather than a red build; any other registry error still fails it.
-          if ! OUT=$(start-cli --registry="$REGISTRY" registry package get makemkv 2>&1); then
-            if grep -q "Not Found" <<<"$OUT"; then
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/makemkv_x86_64.s9pk"
+          if EXISTING=$(start-cli --registry="$REGISTRY" registry package get makemkv --target-version="$VERSION" 2>/dev/null) && [ -n "$EXISTING" ]; then
+            start-cli --registry="$REGISTRY" registry package remove makemkv "$VERSION"
+          fi
+          # Only an admin may create a package id or authorize a signer for it. Until the first
+          # publish has been done by hand, the registry answers "Not Found: package.add", which is
+          # a notice here rather than a red build; any other registry error still fails it.
+          if ! OUT=$(start-cli --registry="$REGISTRY" registry package add makemkv_x86_64.s9pk --url "$URL" 2>&1); then
+            if grep -q "Not Found: package.add" <<<"$OUT"; then
               echo "::notice::makemkv is not on $REGISTRY yet. Publish the first version with the admin key and authorize the CI signer; see AGENTS.local.md in the workspace."
               exit 0
             fi
             echo "$OUT" >&2
             exit 1
           fi
-          if EXISTING=$(start-cli --registry="$REGISTRY" registry package get makemkv --target-version="$VERSION" 2>/dev/null) && [ -n "$EXISTING" ]; then
-            start-cli --registry="$REGISTRY" registry package remove makemkv "$VERSION"
-          fi
-          start-cli --registry="$REGISTRY" registry package add makemkv_x86_64.s9pk \
-            --url "https://github.com/${{ github.repository }}/releases/download/${TAG}/makemkv_x86_64.s9pk"
+          echo "$OUT"
