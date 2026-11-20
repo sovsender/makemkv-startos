@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.svg" alt="MakeMKV Logo" width="21%">
+  <img src="icon.webp" alt="MakeMKV Logo" width="21%">
 </p>
 
 # MakeMKV on StartOS
