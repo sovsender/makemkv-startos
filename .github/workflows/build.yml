@@ -1,0 +1,79 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: ['master']
+    paths-ignore: ['*.md']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  START_CLI_URL: https://github.com/sovsender/makemkv-startos/releases/download/start-cli-optical/start-cli
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup build environment
+        uses: Start9Labs/start-technologies/.github/actions/setup-build-env@master
+
+      - uses: actions/checkout@v6
+
+      - name: Install start-cli with opticalDrives support
+        run: |
+          curl -fsSL "$START_CLI_URL" -o /tmp/start-cli
+          sudo install -m 755 /tmp/start-cli /usr/local/bin/start-cli
+          start-cli --version
+
+      - name: Provision signing keys
+        env:
+          DEV_KEY: ${{ secrets.DEV_KEY }}
+        run: |
+          mkdir -p ~/.startos .startos
+          printf '%s' "$DEV_KEY" > ~/.startos/developer.key.pem
+          cp ~/.startos/developer.key.pem .startos/build-key
+
+      - run: npm ci
+
+      - name: Build
+        run: make x86
+
+      - name: Check the manifest grants optical drives
+        run: |
+          start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -e '.opticalDrives == true'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          path: makemkv_x86_64.s9pk
+          archive: false
+          retention-days: 14
+
+      - name: Release on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -r .version)
+          TAG="v${VERSION//:/_}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" makemkv_x86_64.s9pk --clobber
+          else
+            gh release create "$TAG" makemkv_x86_64.s9pk --target "$GITHUB_SHA" --title "$TAG" --notes "MakeMKV package build"
+          fi
+
+      - name: Publish to the registry
+        env:
+          REGISTRY: ${{ vars.RELEASE_REGISTRY }}
+        run: |
+          VERSION=$(start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -r .version)
+          if [ -n "$(start-cli --registry="$REGISTRY" registry package get makemkv --target-version="$VERSION" 2>&1)" ]; then
+            start-cli --registry="$REGISTRY" registry package remove makemkv "$VERSION"
+          fi
+          start-cli --registry="$REGISTRY" registry package add makemkv_x86_64.s9pk \
+            --url "https://github.com/${{ github.repository }}/releases/download/${TAG}/makemkv_x86_64.s9pk"

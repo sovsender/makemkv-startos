@@ -1,0 +1,6 @@
+MakeMKV is proprietary software, licensed to users under the MakeMKV end-user license
+agreement published at https://www.makemkv.com/.
+
+This repository contains only the StartOS packaging for it. The container image it runs is
+jlesage/makemkv (https://github.com/jlesage/docker-makemkv), an MIT-licensed wrapper
+around MakeMKV.
