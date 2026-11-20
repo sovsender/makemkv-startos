@@ -72,7 +72,7 @@ jobs:
           REGISTRY: ${{ vars.RELEASE_REGISTRY }}
         run: |
           VERSION=$(start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -r .version)
-          if [ -n "$(start-cli --registry="$REGISTRY" registry package get makemkv --target-version="$VERSION" 2>&1)" ]; then
+          if EXISTING=$(start-cli --registry="$REGISTRY" registry package get makemkv --target-version="$VERSION" 2>/dev/null) && [ -n "$EXISTING" ]; then
             start-cli --registry="$REGISTRY" registry package remove makemkv "$VERSION"
           fi
           start-cli --registry="$REGISTRY" registry package add makemkv_x86_64.s9pk \
