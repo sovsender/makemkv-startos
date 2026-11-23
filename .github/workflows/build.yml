@@ -2,7 +2,7 @@ name: Build and Publish
 
 on:
   push:
-    branches: ['master']
+    branches: ['master', 'feat/**']
     paths-ignore: ['*.md']
   workflow_dispatch:
 
@@ -14,6 +14,10 @@ permissions:
   contents: write
 
 env:
+  # Shared volumes and optical drives need an SDK newer than any published release, so the SDK is
+  # built from this commit of the StartOS fork (the same source the start-cli below came from).
+  STARTOS_REPO: sovsender/start-technologies
+  STARTOS_REF: ec90d95043aaa1d25875e3ab104ea6822a420097
   START_CLI_URL: https://github.com/sovsender/makemkv-startos/releases/download/start-cli-optical/start-cli
 
 jobs:
@@ -39,14 +43,32 @@ jobs:
           printf '%s' "$DEV_KEY" > ~/.startos/developer.key.pem
           cp ~/.startos/developer.key.pem .startos/build-key
 
-      - run: npm ci
+      - name: Check out the StartOS source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.STARTOS_REPO }}
+          ref: ${{ env.STARTOS_REF }}
+          path: /tmp/start-technologies
+
+      - name: Build the SDK from source
+        run: |
+          make -C /tmp/start-technologies/projects/start-sdk bundle
+          cd /tmp/start-technologies/projects/start-sdk/dist
+          npm pack --pack-destination /tmp
+          ls -l /tmp/start9labs-start-sdk-*.tgz
+
+      - name: Install package dependencies with that SDK
+        run: |
+          npm pkg set "dependencies.@start9labs/start-sdk=file:$(ls /tmp/start9labs-start-sdk-*.tgz)"
+          npm install --no-package-lock
+          node -p "require('@start9labs/start-sdk/package.json').version"
 
       - name: Build
         run: make x86
 
-      - name: Check the manifest grants optical drives
+      - name: Check the manifest grants optical drives and shared volumes
         run: |
-          start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -e '.opticalDrives == true'
+          start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -e '.opticalDrives == true and .sharedVolumes == true'
 
       - uses: actions/upload-artifact@v7
         with:
@@ -54,7 +76,9 @@ jobs:
           archive: false
           retention-days: 14
 
+      # Only master releases and publishes; a feature branch just builds, for sideloading.
       - name: Release on GitHub
+        if: github.ref == 'refs/heads/master'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -68,6 +92,7 @@ jobs:
           fi
 
       - name: Publish to the registry
+        if: github.ref == 'refs/heads/master'
         env:
           REGISTRY: ${{ vars.RELEASE_REGISTRY }}
         run: |

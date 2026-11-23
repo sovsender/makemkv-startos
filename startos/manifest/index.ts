@@ -11,6 +11,7 @@ const base = setupManifest({
   donationUrl: null,
   description: { short, long },
   volumes: ['config', 'output'],
+  sharedVolumes: true,
   images: {
     makemkv: {
       source: { dockerTag: 'jlesage/makemkv:v26.09.2' },

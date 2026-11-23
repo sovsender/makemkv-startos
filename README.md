@@ -45,9 +45,11 @@ Two volumes hold everything the service keeps.
 | `config` | `/config`   | MakeMKV settings, the web interface's state and logs                 |
 | `output` | `/output`   | Ripped MKV files, which the web file manager can download and delete |
 
+Volumes the user shares with the service in StartOS (the `sharedVolumes` capability) are mounted at `/shared/<grant id>` on every start, read-write or read-only as granted, and an unavailable one is skipped with a log line rather than failing the start. They are the user's data, not the package's, so they are not backed up and are not part of the volume list above.
+
 ## File Models
 
-None. The package writes no configuration files. Settings reach the image as environment variables that the package sets on every start: `USER_ID` and `GROUP_ID` (`0`), `TZ`, `WEB_FILE_MANAGER` (`1`) and `WEB_FILE_MANAGER_ALLOWED_PATHS` (`/output`). A hand edit of MakeMKV's own settings under `/config` survives restarts.
+None. The package writes no configuration files. Settings reach the image as environment variables that the package sets on every start: `USER_ID` and `GROUP_ID` (`0`), `TZ`, `WEB_FILE_MANAGER` (`1`) and `WEB_FILE_MANAGER_ALLOWED_PATHS` (`/output`, plus each mounted shared volume). A hand edit of MakeMKV's own settings under `/config` survives restarts.
 
 ## Dependencies
 

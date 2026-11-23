@@ -6,7 +6,7 @@
 
 ## What you get on StartOS
 
-MakeMKV runs in your browser through the Web UI interface. StartOS gives it your server's optical drives, a USB or SATA drive alike, including a drive you plug in while it is running. Finished rips are written to the service's output folder.
+MakeMKV runs in your browser through the Web UI interface. StartOS gives it your server's optical drives, a USB or SATA drive alike, including a drive you plug in while it is running. Finished rips are written to the service's output folder, or to a volume you share with MakeMKV.
 
 ## Getting set up
 
@@ -18,7 +18,11 @@ MakeMKV runs in your browser through the Web UI interface. StartOS gives it your
 
 ### Getting your files
 
-Ripped files are saved in the `output` folder. Open the file manager from the control panel at the top of the Web UI to download or delete them.
+### Saving rips to a shared volume
+
+To write rips straight into a library that other services such as Radarr or Sonarr read, share that volume with MakeMKV in StartOS (a volume you added under System → Shared Volumes). MakeMKV then shows it under `/shared/` in its folder picker and file manager, in a folder named by the volume's ID. The service log lists each shared volume's name and its folder. Set MakeMKV's output folder to that path before ripping. A volume shared read-only cannot be written to.
+
+Ripped files are saved in the `output` folder by default. Open the file manager from the control panel at the top of the Web UI to download or delete them.
 
 ### Keys
 
