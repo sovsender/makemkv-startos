@@ -48,12 +48,12 @@ jobs:
         with:
           repository: ${{ env.STARTOS_REPO }}
           ref: ${{ env.STARTOS_REF }}
-          path: /tmp/start-technologies
+          path: startos-src
 
       - name: Build the SDK from source
         run: |
-          make -C /tmp/start-technologies/projects/start-sdk bundle
-          cd /tmp/start-technologies/projects/start-sdk/dist
+          make -C "$GITHUB_WORKSPACE/startos-src/projects/start-sdk" bundle
+          cd "$GITHUB_WORKSPACE/startos-src/projects/start-sdk"/dist
           npm pack --pack-destination /tmp
           ls -l /tmp/start9labs-start-sdk-*.tgz
 
