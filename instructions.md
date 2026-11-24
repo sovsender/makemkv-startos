@@ -1,6 +1,6 @@
 # MakeMKV
 
-> **Requires a development build of StartOS.** MakeMKV needs optical drive access, which stock StartOS does not have. On a stock server it starts but cannot see any drive.
+> **This package does not work on stock StartOS.**
 
 ## Documentation
 
