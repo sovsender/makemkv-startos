@@ -11,3 +11,4 @@ bare clone with no workspace, the full guide is at <https://docs.start9.com/pack
   while packing and the s9pk silently ships without drive access; `build.yml` packs with a
   `start-cli` built from the branch that adds it.
 - `ARCHES` is `x86` only until an `aarch64` `start-cli` with that field is available.
+- The package works only on a StartOS build that has the `opticalDrives` flag (not in any Start9 release), and the README's warning says so. Keep that warning until the feature ships in a release, then replace it with the minimum version.

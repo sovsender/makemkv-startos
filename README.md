@@ -4,6 +4,9 @@
 
 # MakeMKV on StartOS
 
+> [!WARNING]
+> **This package does not work on stock StartOS.** It needs optical drive access, a StartOS feature that is not in any Start9 release: the `opticalDrives` manifest flag, which exists only in a development build of StartOS (the `feat/optical-drives` branch of `sovsender/start-technologies`, [PR 1](https://github.com/sovsender/start-technologies/pull/1), not yet submitted to Start9). On a stock server MakeMKV starts but cannot see any drive. The package is built with a `start-cli` from that branch, so it cannot be built with the published tooling either. Do not install it on a server you do not use for testing this feature.
+
 > Everything not listed in this document should behave the same as upstream MakeMKV.
 > If a feature, setting, or behavior is not mentioned here, the upstream
 > documentation is accurate and fully applicable — see the Documentation section of
