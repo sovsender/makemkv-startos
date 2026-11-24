@@ -1,52 +1,65 @@
+import { store } from './fileModels/store.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { sharedPath, uiPort } from './utils'
+import {
+  applySettingsScript,
+  resolveDestination,
+  ripsDir,
+  ripsMount,
+  uiPort,
+} from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting MakeMKV!'))
 
-  // Each grant is a volume the user shared with MakeMKV in StartOS; the list is reactive,
-  // so granting or revoking one restarts the service with the new set.
-  const grants = await sdk.getSharedVolumes(effects).const()
+  // Rips only go to a volume the user shared with MakeMKV. Without one the service does not start,
+  // and the critical task from init points the user at the action that fixes it.
+  const destination = await resolveDestination(effects)
+  if (!destination) {
+    throw new Error(
+      i18n('No writable volume is shared with MakeMKV to save rips to'),
+    )
+  }
+  const settings = (await store.read().const(effects)) ?? {
+    minTitleMinutes: 15,
+    language: 'eng',
+  }
 
   const subcontainer = sdk.SubContainer.of(
     effects,
     { imageId: 'makemkv' },
-    sdk.Mounts.of()
-      .mountVolume({
-        volumeId: 'config',
-        subpath: null,
-        mountpoint: '/config',
-        readonly: false,
-      })
-      .mountVolume({
-        volumeId: 'output',
-        subpath: null,
-        mountpoint: '/output',
-        readonly: false,
-      }),
+    sdk.Mounts.of().mountVolume({
+      volumeId: 'config',
+      subpath: null,
+      mountpoint: '/config',
+      readonly: false,
+    }),
     'makemkv-sub',
   )
 
-  // Mounted by the stable grant id, since names are editable. An offline volume is skipped, not fatal.
-  const mounted: string[] = []
-  for (const grant of grants) {
-    const mountpoint = sharedPath(grant.id)
-    const outcome = await subcontainer.tryMountSharedVolume({
-      id: grant.id,
-      mountpoint,
-      subpath: null,
-      readonly: grant.readonly,
-    })
-    if (outcome.kind === 'unavailable') {
-      console.warn(`Shared volume "${grant.name}" unavailable: ${outcome.reason}`)
-      continue
-    }
-    mounted.push(mountpoint)
-    console.info(
-      `Shared volume "${grant.name}" (${grant.readonly ? 'read-only' : 'read-write'}) is at ${mountpoint}`,
+  // Mounted by the stable grant id, since names are editable.
+  const outcome = await subcontainer.tryMountSharedVolume({
+    id: destination.id,
+    mountpoint: ripsMount,
+    subpath: null,
+    readonly: false,
+  })
+  if (outcome.kind === 'unavailable') {
+    throw new Error(
+      `${i18n('The volume for rips is not available')}: ${outcome.reason}`,
     )
   }
+  console.info(`Rips are saved to "${destination.name}", folder MakeMKV`)
+
+  await subcontainer.execFail([
+    'sh',
+    '-c',
+    applySettingsScript,
+    'sh',
+    ripsDir,
+    settings.language ?? 'eng',
+    String((settings.minTitleMinutes ?? 15) * 60),
+  ])
 
   return sdk.Daemons.of(effects).addDaemon('primary', {
     subcontainer,
@@ -58,7 +71,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         GROUP_ID: '0',
         TZ: 'Etc/UTC',
         WEB_FILE_MANAGER: '1',
-        WEB_FILE_MANAGER_ALLOWED_PATHS: ['/output', ...mounted].join(','),
+        WEB_FILE_MANAGER_ALLOWED_PATHS: ripsMount,
       },
     },
     ready: {

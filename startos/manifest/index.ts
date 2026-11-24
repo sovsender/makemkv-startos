@@ -10,7 +10,7 @@ const base = setupManifest({
   marketingUrl: 'https://www.makemkv.com',
   donationUrl: null,
   description: { short, long },
-  volumes: ['config', 'output'],
+  volumes: ['startos', 'config'],
   sharedVolumes: true,
   images: {
     makemkv: {

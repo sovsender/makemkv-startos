@@ -1,13 +1,13 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '26.9.2:1',
+  version: '26.9.2:2',
   releaseNotes: {
-    en_US: 'Rips can now be written to volumes you share with MakeMKV in StartOS',
-    es_ES: 'Las copias ahora pueden guardarse en volúmenes que compartes con MakeMKV en StartOS',
-    de_DE: 'Rips können jetzt auf Volumes gespeichert werden, die Sie in StartOS mit MakeMKV teilen',
-    pl_PL: 'Kopie można teraz zapisywać na woluminach udostępnionych MakeMKV w StartOS',
-    fr_FR: 'Les copies peuvent désormais être enregistrées sur les volumes que vous partagez avec MakeMKV dans StartOS',
+    en_US: 'Rips are saved to a volume you share with MakeMKV, and the new Rip Settings action sets the minimum title length and preferred language',
+    es_ES: 'Las copias se guardan en un volumen que compartes con MakeMKV, y la nueva acción Ajustes de copia define la duración mínima del título y el idioma preferido',
+    de_DE: 'Rips werden auf einem mit MakeMKV geteilten Volume gespeichert, und die neue Aktion Rip-Einstellungen legt Mindestlänge und bevorzugte Sprache fest',
+    pl_PL: 'Kopie są zapisywane na woluminie udostępnionym MakeMKV, a nowa akcja Ustawienia kopiowania ustawia minimalną długość tytułu i preferowany język',
+    fr_FR: 'Les copies sont enregistrées sur un volume partagé avec MakeMKV, et la nouvelle action Réglages de copie définit la durée minimale du titre et la langue préférée',
   },
   migrations: {
     up: async ({ effects }) => {},
