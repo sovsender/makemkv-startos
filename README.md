@@ -48,13 +48,13 @@ Two package volumes hold everything the service keeps, and rips go to a volume t
 | `config`  | `/config`   | MakeMKV settings, the web interface's state and logs             |
 | `startos` | none        | `store.json`, the choices made in the Rip Settings action        |
 
-Ripped files are written to a volume the user shares with the service in StartOS (the `sharedVolumes` capability). The chosen volume is mounted read-write at `/rips` on every start by its stable grant id, and MakeMKV writes into the `MakeMKV` folder in it. The service has no private output volume. That volume belongs to the user, so it is not backed up and is not in the list above.
+Ripped files are written to a volume the user shares with the service in StartOS (the `sharedVolumes` capability). The chosen volume is mounted read-write at `/output` on every start (the image's init refuses to start without that folder) by its stable grant id, and MakeMKV writes into the `MakeMKV` folder in it. The service has no private output volume. That volume belongs to the user, so it is not backed up and is not in the list above.
 
 ## File Models
 
 `store.json` on the `startos` volume holds `destination` (a shared volume's id, or null), `minTitleMinutes` (default 15) and `language` (an ISO 639-2 code, default `eng`).
 
-On every start the package sets four keys in MakeMKV's own `settings.conf` under `/config`: `app_DestinationDir`, `app_DestinationType`, `app_PreferredLanguage` and `dvd_MinimumTitleLength` (in seconds). It leaves every other line alone, the registration key included. The settings therefore always follow the Rip Settings action: changing the same options in MakeMKV's own preferences lasts only until the next restart. Other settings under `/config` survive restarts. The environment variables the package sets are `USER_ID` and `GROUP_ID` (`0`), `TZ`, `WEB_FILE_MANAGER` (`1`) and `WEB_FILE_MANAGER_ALLOWED_PATHS` (`/rips`).
+On every start the package sets four keys in MakeMKV's own `settings.conf` under `/config`: `app_DestinationDir`, `app_DestinationType`, `app_PreferredLanguage` and `dvd_MinimumTitleLength` (in seconds). It leaves every other line alone, the registration key included. The settings therefore always follow the Rip Settings action: changing the same options in MakeMKV's own preferences lasts only until the next restart. Other settings under `/config` survive restarts. The environment variables the package sets are `USER_ID` and `GROUP_ID` (`0`), `TZ`, `WEB_FILE_MANAGER` (`1`) and `WEB_FILE_MANAGER_ALLOWED_PATHS` (`/output`).
 
 ## Dependencies
 
@@ -118,7 +118,7 @@ startos_managed_env_vars:
   - TZ
   - WEB_FILE_MANAGER
   - WEB_FILE_MANAGER_ALLOWED_PATHS
-shared_volumes: mounted at /rips (one, chosen in rip-settings)
+shared_volumes: mounted at /output (one, chosen in rip-settings)
 dependencies: none
 interfaces:
   ui: { type: ui, port: 5800 }

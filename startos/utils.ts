@@ -4,9 +4,10 @@ import { sdk } from './sdk'
 
 export const uiPort = 5800
 
-// The chosen shared volume is mounted here, and MakeMKV writes into the folder inside it.
-export const ripsMount = '/rips'
-export const ripsDir = '/rips/MakeMKV'
+// The chosen shared volume is mounted here, and MakeMKV writes into the folder inside it. The
+// image's init refuses to start without a /output folder, so that is where the volume goes.
+export const ripsMount = '/output'
+export const ripsDir = '/output/MakeMKV'
 
 // ISO 639-2 codes MakeMKV understands, each shown by the language's own name.
 export const languageCodes = {
