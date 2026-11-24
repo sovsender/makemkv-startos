@@ -1,5 +1,7 @@
 # MakeMKV
 
+> **Requires a development build of StartOS.** MakeMKV needs optical drive access, which stock StartOS does not have. On a stock server it starts but cannot see any drive.
+
 ## Documentation
 
 - [MakeMKV container documentation](https://github.com/jlesage/docker-makemkv/blob/master/README.md) — using the web interface and how optical drives appear in it
