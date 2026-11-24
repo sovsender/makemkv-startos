@@ -85,10 +85,15 @@ jobs:
           VERSION=$(start-cli s9pk inspect makemkv_x86_64.s9pk manifest | jq -r .version)
           TAG="v${VERSION//:/_}"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
+          # Every release is a pre-release: it needs a development build of StartOS with optical
+          # drive support and does not work on stock StartOS. Drop --prerelease only once that
+          # feature ships in a StartOS release.
+          NOTES="Pre-release. Requires a development build of StartOS with optical drive support (the opticalDrives manifest flag). It does not work on stock StartOS."
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" makemkv_x86_64.s9pk --clobber
+            gh release edit "$TAG" --prerelease
           else
-            gh release create "$TAG" makemkv_x86_64.s9pk --target "$GITHUB_SHA" --title "$TAG" --notes "MakeMKV package build"
+            gh release create "$TAG" makemkv_x86_64.s9pk --target "$GITHUB_SHA" --title "$TAG" --notes "$NOTES" --prerelease
           fi
 
       - name: Publish to the registry
